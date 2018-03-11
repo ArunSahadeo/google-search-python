@@ -6,6 +6,6 @@ Note: this only works on browsers that were last used within the past two weeks.
 
 ## Usage:
 
-``bash
+```bash
 python main.py
-``
+```
