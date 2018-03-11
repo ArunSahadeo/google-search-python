@@ -1,0 +1,7 @@
+{
+    "paths":
+    [
+        "~/.config/chromium/Default/History",
+        "~/.mozilla/firefox/$PROFILE_FOLDER/places.sqlite"
+    ]
+}
