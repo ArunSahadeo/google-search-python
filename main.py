@@ -8,13 +8,19 @@ def checkConfig(config_file):
     if not os.path.isfile(config_file):
         return
 
-    firefox_profile_config = open(os.path.expanduser('~/.mozilla/firefox/profiles.ini'))
+    AppData = str(os.getenv('APPDATA'))
+    LocalUser = os.getenv('USERPROFILE')
+    AppDataLocal = os.path.join(LocalUser, 'AppData\Local')
+
+    firefox_profile_config = open(os.path.expanduser('~/.mozilla/firefox/profiles.ini')) if os.name == 'posix' else open( os.path.join("%s\Mozilla\Firefox\profiles.ini") % (AppData) )
     firefox_profile = None
 
     with firefox_profile_config as profile_file:
         for line in profile_file:
             name, val = line.partition('=')[::2]
             if '.default' in val:
+                if 'Profiles/' in val:
+                    val = val.replace('Profiles/', '')
                 firefox_profile = val.rstrip()
                 break
 
@@ -22,7 +28,10 @@ def checkConfig(config_file):
         history_paths  = json.load(f)
         history_paths = history_paths['paths']
         for history_path in history_paths:
-            history_path = os.path.expanduser(history_path)
+            if os.name == "posix":
+                history_path = os.path.expanduser(history_path)
+            if '$APPLOCAL' in history_path:
+                history_path = history_path.replace('$APPLOCAL', AppDataLocal)
             if '$PROFILE_FOLDER' in history_path:
                 history_path = history_path.replace('$PROFILE_FOLDER', firefox_profile)
             if len(history_path) < 1 or not os.path.isfile(history_path):
@@ -34,8 +43,9 @@ browser_sqlite_dbs = []
 if os.name == 'posix':
     nix_paths_config = 'nix_paths.json'
     checkConfig(nix_paths_config)
-else:
-    print(False)
+elif os.name == 'nt':
+    win_paths_config = 'win_paths.json'
+    checkConfig(win_paths_config)
 
 if not len(browser_sqlite_dbs) > 0:
     print("No SQLite files found!")
