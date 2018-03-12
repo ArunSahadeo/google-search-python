@@ -8,8 +8,8 @@ def checkConfig(config_file):
     if not os.path.isfile(config_file):
         return
 
-    AppData = str(os.getenv('APPDATA'))
-    AppLocal = os.path.join(os.getenv('USERPROFILE'), 'AppData\Local')
+    AppData = str(os.getenv('APPDATA')) if os.name == 'nt' else None
+    AppLocal = os.path.join(os.getenv('USERPROFILE'), 'AppData\Local') if os.name == 'nt' else None
 
     firefox_profile_config = open(os.path.expanduser('~/.mozilla/firefox/profiles.ini')) if os.name == 'posix' else open( os.path.join("%s\Mozilla\Firefox\profiles.ini") % (AppData) )
     firefox_profile = None
