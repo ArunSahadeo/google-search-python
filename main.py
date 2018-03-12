@@ -9,8 +9,6 @@ def checkConfig(config_file):
         return
 
     AppData = str(os.getenv('APPDATA'))
-    LocalUser = os.getenv('USERPROFILE')
-    AppDataLocal = os.path.join(LocalUser, 'AppData\Local')
 
     firefox_profile_config = open(os.path.expanduser('~/.mozilla/firefox/profiles.ini')) if os.name == 'posix' else open( os.path.join("%s\Mozilla\Firefox\profiles.ini") % (AppData) )
     firefox_profile = None
@@ -33,7 +31,7 @@ def checkConfig(config_file):
             if os.name == "nt" and "/" in history_path:
                 history_path = history_path.replace("/", "\\")
             if '$APPLOCAL' in history_path:
-                history_path = history_path.replace('$APPLOCAL', AppDataLocal)
+                history_path = history_path.replace('$APPLOCAL', AppData)
             if '$PROFILE_FOLDER' in history_path:
                 history_path = history_path.replace('$PROFILE_FOLDER', firefox_profile)
             print(history_path)
@@ -58,9 +56,9 @@ for index, db_path in enumerate(browser_sqlite_dbs):
     db_timestamp = os.path.getmtime(db_path)
     browser = None
     
-    if "chromium" in db_path:
+    if "chromium" in str(db_path).lower():
         browser = "chromium"
-    elif "firefox" in db_path:
+    elif "firefox" in str(db_path).lower():
         browser = "firefox"
 
     now = time.time()
@@ -72,7 +70,7 @@ for index, db_path in enumerate(browser_sqlite_dbs):
     old_filename = os.path.basename(db_path)
     shutil.copy(db_path, os.getcwd())
     src_file = os.path.join(os.getcwd(), old_filename)
-    dst_file = str("{:s}_browser_history").format(browser)
+    dst_file = str("%s_browser_history" % (browser))
     new_file = os.path.join(os.getcwd(), dst_file)
     os.replace(src_file, dst_file)
 
@@ -83,7 +81,10 @@ for index, db_path in enumerate(browser_sqlite_dbs):
     cursor = conn.cursor()
 
     try:
-        cursor.execute('SELECT title from urls WHERE title LIKE "%Google Search%" ORDER BY id DESC LIMIT 1')
+        if browser == "chromium" or browser == "chrome":
+            cursor.execute('SELECT title from urls WHERE title LIKE "%Google Search%" ORDER BY id DESC LIMIT 1')
+        elif browser == "firefox":
+            cursor.execute('SELECT title FROM moz_places WHERE title LIKE "%Google Search%" ORDER BY id DESC LIMIT 1')
         select_result = cursor.fetchone()[0]
         print(select_result)
     except Exception as error:
