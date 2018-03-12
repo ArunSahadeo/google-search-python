@@ -30,10 +30,13 @@ def checkConfig(config_file):
         for history_path in history_paths:
             if os.name == "posix":
                 history_path = os.path.expanduser(history_path)
+            if os.name == "nt" and "/" in history_path:
+                history_path = history_path.replace("/", "\\")
             if '$APPLOCAL' in history_path:
                 history_path = history_path.replace('$APPLOCAL', AppDataLocal)
             if '$PROFILE_FOLDER' in history_path:
                 history_path = history_path.replace('$PROFILE_FOLDER', firefox_profile)
+            print(history_path)
             if len(history_path) < 1 or not os.path.isfile(history_path):
                 continue
             browser_sqlite_dbs.append(history_path)
