@@ -1,6 +1,6 @@
 {
+	"paths":
     [
-        "",
-        ""
+		"$APPLOCAL/Mozilla/Firefox/Profiles/$PROFILE_FOLDER/places.sqlite"
     ]
 }
