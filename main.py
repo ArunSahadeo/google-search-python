@@ -60,8 +60,8 @@ for index, db_path in enumerate(browser_sqlite_dbs):
     shutil.copy(db_path, os.getcwd())
     src_file = os.path.join(os.getcwd(), old_filename)
     dst_file = str("{:s}_browser_history").format(browser)
-    os.rename(src_file, dst_file)
     new_file = os.path.join(os.getcwd(), dst_file)
+    os.replace(src_file, dst_file)
 
     if not os.path.isfile(new_file):
         continue
