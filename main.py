@@ -34,7 +34,6 @@ def checkConfig(config_file):
                 history_path = history_path.replace('$APPLOCAL', AppData)
             if '$PROFILE_FOLDER' in history_path:
                 history_path = history_path.replace('$PROFILE_FOLDER', firefox_profile)
-            print(history_path)
             if len(history_path) < 1 or not os.path.isfile(history_path):
                 continue
             browser_sqlite_dbs.append(history_path)
