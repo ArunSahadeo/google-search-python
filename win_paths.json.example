@@ -1,6 +1,7 @@
 {
 	"paths":
     [
-		"$APPLOCAL/Mozilla/Firefox/Profiles/$PROFILE_FOLDER/places.sqlite"
+		"$APPDATA/Mozilla/Firefox/Profiles/$PROFILE_FOLDER/places.sqlite",
+		"$APPLOCAL/Google/Chrome/User Data/Default/History"
     ]
 }

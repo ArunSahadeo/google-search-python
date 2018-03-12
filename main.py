@@ -9,6 +9,7 @@ def checkConfig(config_file):
         return
 
     AppData = str(os.getenv('APPDATA'))
+    AppLocal = os.path.join(os.getenv('USERPROFILE'), 'AppData\Local')
 
     firefox_profile_config = open(os.path.expanduser('~/.mozilla/firefox/profiles.ini')) if os.name == 'posix' else open( os.path.join("%s\Mozilla\Firefox\profiles.ini") % (AppData) )
     firefox_profile = None
@@ -28,10 +29,10 @@ def checkConfig(config_file):
         for history_path in history_paths:
             if os.name == "posix":
                 history_path = os.path.expanduser(history_path)
-            if os.name == "nt" and "/" in history_path:
-                history_path = history_path.replace("/", "\\")
+            if '$APPDATA' in history_path:
+                history_path = history_path.replace('$APPDATA', AppData)
             if '$APPLOCAL' in history_path:
-                history_path = history_path.replace('$APPLOCAL', AppData)
+                history_path = history_path.replace('$APPLOCAL', AppLocal)
             if '$PROFILE_FOLDER' in history_path:
                 history_path = history_path.replace('$PROFILE_FOLDER', firefox_profile)
             if len(history_path) < 1 or not os.path.isfile(history_path):
@@ -57,6 +58,8 @@ for index, db_path in enumerate(browser_sqlite_dbs):
     
     if "chromium" in str(db_path).lower():
         browser = "chromium"
+    elif "chrome" in str(db_path).lower():
+        browser = "chrome"
     elif "firefox" in str(db_path).lower():
         browser = "firefox"
 
