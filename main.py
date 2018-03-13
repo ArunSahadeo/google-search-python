@@ -31,15 +31,17 @@ def getLatestResult(latest_query):
         return
 
     conn = sqlite3.connect(new_file)
+    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
     try:
         if browser == "chromium" or browser == "chrome":
-            cursor.execute('SELECT title from urls WHERE title LIKE "%Google Search%" ORDER BY id DESC LIMIT 1')
+            cursor.execute('SELECT title, last_visit_time from urls WHERE title LIKE "%Google Search%" ORDER BY id DESC LIMIT 1')
         elif browser == "firefox":
             cursor.execute('SELECT title FROM moz_places WHERE title LIKE "%Google Search%" ORDER BY id DESC LIMIT 1')
-        select_result = cursor.fetchone()[0]
-        print(select_result)
+        select_result = cursor.fetchone()
+        print(select_result['title'])
+        print(select_result['last_visit_time'])
     except Exception as error:
         print(error)
 
