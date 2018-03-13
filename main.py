@@ -39,11 +39,11 @@ def getLatestResult(browser_sqlite_dbs):
 
         try:
             if browser == "chromium" or browser == "chrome":
-                cursor.execute('SELECT title, last_visit_time from urls WHERE title LIKE "%Google Search%" ORDER BY id DESC LIMIT 1')
+                cursor.execute('SELECT title, datetime(last_visit_time / 1000000 + (strftime("%s", "1601-01-01")), "unixepoch") as last_visit_time from urls WHERE title LIKE "%Google Search%" ORDER BY id DESC LIMIT 1')
                 select_result = cursor.fetchone()
                 search_queries.append({'query': select_result['title'], 'last_visited': select_result['last_visit_time'] })
             elif browser == "firefox":
-                cursor.execute('SELECT title, last_visit_date FROM moz_places WHERE title LIKE "%Google Search%" ORDER BY id DESC LIMIT 1')
+                cursor.execute('SELECT title, datetime(last_visit_date / 1000000, "unixepoch") as last_visit_date FROM moz_places WHERE title LIKE "%Google Search%" ORDER BY id DESC LIMIT 1')
                 select_result = cursor.fetchone()
                 search_queries.append({'query': select_result['title'], 'last_visited': select_result['last_visit_date'] })
         except Exception as error:
@@ -52,7 +52,6 @@ def getLatestResult(browser_sqlite_dbs):
     if not len(search_queries): return
 
     latest_query = max(search_queries, key=operator.itemgetter('last_visited'))
-
     latest_query = latest_query['query']
 
     print(latest_query)
