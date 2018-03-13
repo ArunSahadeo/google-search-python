@@ -4,46 +4,59 @@ import datetime, json, operator, os, sys, time
 import sqlite3
 import shutil
 
-def getLatestResult(latest_query):
-    browser = None
+def getLatestResult(browser_sqlite_dbs):
+    
+    search_queries = []
 
-    if "chromium" in str(latest_query).lower():
-        browser = "chromium"
-    elif "chrome" in str(latest_query).lower():
-        browser = "chrome"
-    elif "firefox" in str(latest_query).lower():
-        browser = "firefox"
+    for db_path in browser_sqlite_dbs:
+        browser = None
+        now = time.time()
+        one_week_ago = now - (60 * 60 * 24 * 7)
 
-    now = time.time()
-    one_week_ago = now - (60 * 60 * 24 * 7)
+        if os.path.getmtime(db_path) < one_week_ago:
+            return
 
-    if latest_query['modification_time'] < one_week_ago:
-        return
+        if "chromium" in str(db_path).lower():
+            browser = "chromium"
+        elif "chrome" in str(db_path).lower():
+            browser = "chrome"
+        elif "firefox" in str(db_path).lower():
+            browser = "firefox"
 
-    old_filename = os.path.basename(latest_query['path'])
-    shutil.copy(latest_query['path'], os.getcwd())
-    src_file = os.path.join(os.getcwd(), old_filename)
-    dst_file = str("%s_browser_history" % (browser))
-    new_file = os.path.join(os.getcwd(), dst_file)
-    os.replace(src_file, dst_file)
+        old_filename = os.path.basename(db_path)
+        shutil.copy(db_path, os.getcwd())
+        src_file = os.path.join(os.getcwd(), old_filename)
+        dst_file = str("%s_browser_history" % (browser))
+        new_file = os.path.join(os.getcwd(), dst_file)
+        os.replace(src_file, dst_file)
 
-    if not os.path.isfile(new_file):
-        return
+        if not os.path.isfile(new_file):
+            return
 
-    conn = sqlite3.connect(new_file)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
+        conn = sqlite3.connect(new_file)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
 
-    try:
-        if browser == "chromium" or browser == "chrome":
-            cursor.execute('SELECT title, last_visit_time from urls WHERE title LIKE "%Google Search%" ORDER BY id DESC LIMIT 1')
-        elif browser == "firefox":
-            cursor.execute('SELECT title FROM moz_places WHERE title LIKE "%Google Search%" ORDER BY id DESC LIMIT 1')
-        select_result = cursor.fetchone()
-        print(select_result['title'])
-        print(select_result['last_visit_time'])
-    except Exception as error:
-        print(error)
+        try:
+            if browser == "chromium" or browser == "chrome":
+                cursor.execute('SELECT title, last_visit_time from urls WHERE title LIKE "%Google Search%" ORDER BY id DESC LIMIT 1')
+                select_result = cursor.fetchone()
+                search_queries.append({'query': select_result['title'], 'last_visited': select_result['last_visit_time'] })
+            elif browser == "firefox":
+                cursor.execute('SELECT title, last_visit_date FROM moz_places WHERE title LIKE "%Google Search%" ORDER BY id DESC LIMIT 1')
+                select_result = cursor.fetchone()
+                search_queries.append({'query': select_result['title'], 'last_visited': select_result['last_visit_date'] })
+        except Exception as error:
+            print(error)
+
+    if not len(search_queries): return
+
+    latest_query = max(search_queries, key=operator.itemgetter('last_visited'))
+
+    latest_query = latest_query['query']
+
+    print(latest_query)
+
 
 def checkConfig(config_file):
     if not os.path.isfile(config_file):
@@ -78,7 +91,7 @@ def checkConfig(config_file):
                 history_path = history_path.replace('$PROFILE_FOLDER', firefox_profile)
             if len(history_path) < 1 or not os.path.isfile(history_path):
                 continue
-            browser_sqlite_dbs.append({ 'path': history_path, 'modification_time': os.path.getmtime(history_path) })
+            browser_sqlite_dbs.append(history_path)
 
 browser_sqlite_dbs = []
 
@@ -93,6 +106,4 @@ if not len(browser_sqlite_dbs) > 0:
     print("No SQLite files found!")
     sys.exit(0)
 
-latest_query = max(browser_sqlite_dbs, key=operator.itemgetter('modification_time'))
-
-getLatestResult(latest_query)
+getLatestResult(browser_sqlite_dbs)
