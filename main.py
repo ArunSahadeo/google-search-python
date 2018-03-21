@@ -14,7 +14,7 @@ def getLatestResult(browser_sqlite_dbs):
         one_week_ago = now - (60 * 60 * 24 * 7)
 
         if os.path.getmtime(db_path) < one_week_ago:
-            return
+            continue
 
         if "chromium" in str(db_path).lower():
             browser = "chromium"
@@ -31,7 +31,8 @@ def getLatestResult(browser_sqlite_dbs):
         os.replace(src_file, dst_file)
 
         if not os.path.isfile(new_file):
-            return
+            print('%s does not exist' % (new_file))
+            continue
 
         conn = sqlite3.connect(new_file)
         conn.row_factory = sqlite3.Row
@@ -49,7 +50,8 @@ def getLatestResult(browser_sqlite_dbs):
         except Exception as error:
             print(error)
 
-    if not len(search_queries): return
+    if not len(search_queries):
+        return
 
     latest_query = max(search_queries, key=operator.itemgetter('last_visited'))
     latest_query = latest_query['query']
